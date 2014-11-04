@@ -12,3 +12,4 @@ Max supply 69,120,000 coins
 =======
 boss@hashmebadly.com  
 https://bitcointalk.org/index.php?topic=844023.0  
+https://twitter.com/Bad_Coin
