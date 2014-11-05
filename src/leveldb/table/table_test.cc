@@ -797,6 +797,35 @@ static bool Between(uint64_t val, uint64_t low, uint64_t high) {
 
 class TableTest { };
 
+TEST(TableTest, ApproximateOffsetOfPlain) {
+  TableConstructor c(BytewiseComparator());
+  c.Add("k01", "hello");
+  c.Add("k02", "hello2");
+  c.Add("k03", std::string(10000, 'x'));
+  c.Add("k04", std::string(200000, 'x'));
+  c.Add("k05", std::string(300000, 'x'));
+  c.Add("k06", "hello3");
+  c.Add("k07", std::string(100000, 'x'));
+  std::vector<std::string> keys;
+  KVMap kvmap;
+  Options options;
+  options.block_size = 1024;
+  options.compression = kNoCompression;
+  c.Finish(options, &keys, &kvmap);
+
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("abc"),       0,      0));
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("k01"),       0,      0));
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("k01a"),      0,      0));
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("k02"),       0,      0));
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("k03"),       0,      0));
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("k04"),   10000,  11000));
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("k04a"), 210000, 211000));
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("k05"),  210000, 211000));
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("k06"),  510000, 511000));
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("k07"),  510000, 511000));
+  ASSERT_TRUE(Between(c.ApproximateOffsetOf("xyz"),  610000, 612000));
+
+}
 
 static bool SnappyCompressionSupported() {
   std::string out;
